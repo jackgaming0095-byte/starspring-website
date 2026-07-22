@@ -1,4 +1,3 @@
-import { CurrencyProvider } from "@/components/currency/currency-provider";
 import { JsonLd } from "@/components/seo/json-ld";
 import { Decision } from "@/components/sections/decision";
 import { Faq } from "@/components/sections/faq";
@@ -12,17 +11,15 @@ import { Integrity } from "@/components/sections/integrity";
 import { Outcomes } from "@/components/sections/outcomes";
 import { Pricing } from "@/components/sections/pricing";
 import { WhatWeMeasure } from "@/components/sections/what-we-measure";
-import { getPricingContext } from "@/lib/currency/server";
 import { faqSchema, serviceSchema } from "@/lib/structured-data";
 
 /**
- * Rendered per request because pricing depends on the visitor's coarse
- * location and their saved currency choice. Resolving it here rather than in
- * the browser is what keeps the price from flickering after hydration.
+ * Fully static. Prices for every supported currency are baked into the HTML and
+ * CSS reveals the right one from the `data-currency` attribute, which the
+ * Cloudflare edge middleware (from `cf-ipcountry`) and the pre-paint script in
+ * the layout resolve before first paint. Nothing here runs per request.
  */
-export default async function HomePage() {
-  const pricing = await getPricingContext();
-
+export default function HomePage() {
   return (
     <>
       <JsonLd data={serviceSchema()} />
@@ -35,15 +32,7 @@ export default async function HomePage() {
       <Integrity />
       <Inclusions />
       <Industries />
-
-      <CurrencyProvider
-        initialCurrency={pricing.currency}
-        initialSource={pricing.source}
-        table={pricing.table}
-      >
-        <Pricing />
-      </CurrencyProvider>
-
+      <Pricing />
       <WhatWeMeasure />
       <FreeAudit />
       <Faq />

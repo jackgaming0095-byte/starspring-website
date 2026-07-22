@@ -1,19 +1,24 @@
-"use client";
-
 import { Check } from "lucide-react";
 
 import { CurrencySelect } from "@/components/currency/currency-select";
-import { useCurrency } from "@/components/currency/currency-provider";
 import { ButtonLink } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
 import { Section, SectionHeading } from "@/components/ui/section";
+import { CURRENCY_CODES, PRICES, formatPrice, type PlanId } from "@/lib/currency/config";
 
-/** GBP is canonical. Everything else on this page is a converted approximation. */
-const PLANS = [
+/** GBP is canonical and billed. Local currencies are fixed approximations. */
+const PLANS: {
+  id: PlanId;
+  name: string;
+  cadence: string;
+  description: string;
+  cta: string;
+  featured: boolean;
+  features: string[];
+}[] = [
   {
     id: "launch",
     name: "Review Launch",
-    amountGbp: 350,
     cadence: "one time",
     description:
       "A complete reputation-system setup for businesses that want the foundation built properly.",
@@ -35,7 +40,6 @@ const PLANS = [
   {
     id: "growth",
     name: "Reputation Growth",
-    amountGbp: 300,
     cadence: "per month",
     description:
       "Managed reputation growth, month to month, with reporting you can actually read.",
@@ -54,32 +58,40 @@ const PLANS = [
       "Cancel anytime",
     ],
   },
-] as const;
+];
 
-function PriceDisplay({ amountGbp, cadence }: { amountGbp: number; cadence: string }) {
-  const { format, note } = useCurrency();
-  const price = format(amountGbp);
-  const gbp = `£${amountGbp}`;
+/**
+ * Every currency's price is rendered into the static HTML at build time, each
+ * wrapped in a `[data-cur]` block. CSS in globals.css shows exactly one based
+ * on the `data-currency` attribute on <html>, which the Cloudflare edge and the
+ * pre-paint script set before first paint. That is what keeps the price from
+ * flickering: no request-time work, no client fetch, no hydration swap.
+ */
+function PriceDisplay({ planId, cadence }: { planId: PlanId; cadence: string }) {
+  const gbp = formatPrice(PRICES[planId].GBP, "GBP");
 
   return (
     <div className="mt-6">
-      <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-        <span className="numeric text-4xl font-semibold tracking-[-0.03em] text-ink">
-          {price.text}
-        </span>
-        <span className="text-sm text-ink-muted">{cadence}</span>
-      </div>
-
-      {price.isApproximate ? (
-        <p className="mt-2.5 text-xs leading-relaxed text-ink-subtle">
-          Approximate local equivalent of {gbp} {cadence}. {note} Invoices are issued and charged in
-          GBP.
-        </p>
-      ) : (
-        <p className="mt-2.5 text-xs leading-relaxed text-ink-subtle">
-          Invoices are issued and charged in GBP.
-        </p>
-      )}
+      {CURRENCY_CODES.map((code) => (
+        <div key={code} data-cur={code}>
+          <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+            <span className="numeric text-4xl font-semibold tracking-[-0.03em] text-ink">
+              {formatPrice(PRICES[planId][code], code)}
+            </span>
+            <span className="text-sm text-ink-muted">{cadence}</span>
+          </div>
+          {code === "GBP" ? (
+            <p className="mt-2.5 text-xs leading-relaxed text-ink-subtle">
+              Invoices are issued and charged in GBP.
+            </p>
+          ) : (
+            <p className="mt-2.5 text-xs leading-relaxed text-ink-subtle">
+              Approximate local equivalent of {gbp} {cadence}. Invoices are issued and charged in
+              GBP.
+            </p>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
@@ -123,7 +135,7 @@ export function Pricing() {
                 {plan.description}
               </p>
 
-              <PriceDisplay amountGbp={plan.amountGbp} cadence={plan.cadence} />
+              <PriceDisplay planId={plan.id} cadence={plan.cadence} />
 
               <ButtonLink
                 href="/#free-audit"

@@ -5,7 +5,18 @@ build
 .DS_Store
 *.pem
 
-# Local lead capture from the development delivery adapter. Never commit.
+# Cloudflare / OpenNext
+.wrangler
+.open-next
+
+# Local Worker secrets (LEAD_WEBHOOK_URL, RATE_LIMIT_SALT…). Never commit real
+# values. Set them in the Cloudflare dashboard for production.
+.dev.vars
+
+# Generated Cloudflare binding types
+cloudflare-env.d.ts
+
+# Local lead capture from an earlier dev adapter. Never commit.
 .data
 
 .env

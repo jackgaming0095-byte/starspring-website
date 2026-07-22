@@ -161,6 +161,24 @@
   }
 }
 
+/*
+  Currency display. Every plan renders all supported currencies into the static
+  HTML, each wrapped in a [data-cur] block; exactly one shows based on the
+  data-currency attribute on <html>. That attribute is set before first paint
+  (the Cloudflare edge from cf-ipcountry, then the layout bootstrap script), so
+  the price never flickers, and it falls back to GBP when the attribute is
+  absent — including with JavaScript disabled.
+*/
+[data-cur] {
+  display: none;
+}
+:root[data-currency="GBP"] [data-cur="GBP"],
+:root[data-currency="INR"] [data-cur="INR"],
+:root[data-currency="AED"] [data-cur="AED"],
+:root:not([data-currency]) [data-cur="GBP"] {
+  display: block;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

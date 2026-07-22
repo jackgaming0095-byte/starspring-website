@@ -1,0 +1,34 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+
+  // The Worker's name. This MUST equal the "service" of the
+  // WORKER_SELF_REFERENCE binding below — OpenNext calls the Worker back
+  // through that binding, and a name/service mismatch is what broke the
+  // previous deploy (name was "starspring-website" but the self-reference
+  // pointed at "starspring-site"). Keep these two strings identical.
+  "name": "starspring-website",
+
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-03-25",
+  // nodejs_compat: the Next server + route handler need Node built-ins.
+  // global_fetch_strictly_public: lets the Worker fetch itself through the
+  // public edge via WORKER_SELF_REFERENCE (used for cache revalidation).
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+
+  "assets": {
+    "binding": "ASSETS",
+    "directory": ".open-next/assets"
+  },
+
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      // Must match "name" above. Do not point this at any other Worker.
+      "service": "starspring-website"
+    }
+  ],
+
+  "observability": {
+    "enabled": true
+  }
+}

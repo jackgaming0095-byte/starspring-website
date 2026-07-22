@@ -6,6 +6,10 @@ export const alt = `${site.name} ${site.descriptor}. ${site.tagline}`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
+// Render the social card to a PNG at build time (Satori runs during the
+// build, not per request).
+export const dynamic = "force-static";
+
 /*
   Social card. Rendered with the built-in system font stack rather than a
   fetched webfont so the route has no network dependency and cannot fail at
