@@ -1,0 +1,187 @@
+@import "tailwindcss";
+
+/*
+  StarSpring design tokens.
+
+  Single locked theme: deep-charcoal surface, warm off-white ink, one electric
+  lime accent. The page never inverts to a light section; contrast between
+  sections comes from the surface ladder (bg -> raised -> surface), never from
+  flipping mode.
+
+  Radius system (one rule, applied everywhere):
+    sm  8px  - buttons, inputs, chips, small controls
+    md 12px  - cards, panels, list rows
+    lg 18px  - large feature panels and framed illustrations
+*/
+
+@theme {
+  /* Surface ladder. Never pure black. */
+  --color-bg: oklch(0.155 0.008 130);
+  --color-bg-raised: oklch(0.188 0.009 130);
+  --color-surface: oklch(0.223 0.010 130);
+  --color-surface-hi: oklch(0.262 0.011 130);
+
+  /* Ink ramp. All values verified >= 4.5:1 on --color-bg (see README). */
+  --color-ink: oklch(0.968 0.007 95);
+  --color-ink-muted: oklch(0.788 0.010 95);
+  --color-ink-subtle: oklch(0.655 0.011 95);
+
+  /* Single accent. Used identically on every section. */
+  --color-accent: oklch(0.875 0.196 123);
+  --color-accent-dim: oklch(0.76 0.17 123);
+  --color-accent-ink: oklch(0.19 0.03 123);
+  --color-accent-wash: oklch(0.875 0.196 123 / 0.1);
+
+  /* Hairlines */
+  --color-line: oklch(1 0 0 / 0.09);
+  --color-line-strong: oklch(1 0 0 / 0.16);
+
+  /* Status - used only where state is real (form validation) */
+  --color-danger: oklch(0.72 0.15 25);
+  --color-danger-wash: oklch(0.72 0.15 25 / 0.12);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+
+  /* Emil-style strong curves. The built-in CSS easings are too weak. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-out-soft: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+
+  --text-display: clamp(2.5rem, 5.1vw, 4.25rem);
+  --text-display--line-height: 1.04;
+  --text-display--letter-spacing: -0.032em;
+
+  --text-title: clamp(1.9rem, 3.4vw, 2.85rem);
+  --text-title--line-height: 1.1;
+  --text-title--letter-spacing: -0.026em;
+}
+
+/* Semantic z-index scale. No arbitrary values anywhere in the codebase. */
+@layer base {
+  :root {
+    --z-sticky: 20;
+    --z-menu-backdrop: 40;
+    --z-menu: 45;
+    --z-toast: 60;
+
+    color-scheme: dark;
+  }
+
+  * {
+    border-color: var(--color-line);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    /* Sticky nav is 64px; keep anchored sections clear of it. */
+    scroll-padding-top: 5.5rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    /* Guards against any single element widening the page on mobile. */
+    overflow-x: clip;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Visible, on-brand focus for every interactive element. */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: var(--color-accent-ink);
+  }
+}
+
+@layer components {
+  /* Page gutter + max width, shared by every section. */
+  .shell {
+    width: 100%;
+    max-width: 78rem;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .shell {
+      padding-inline: 2rem;
+    }
+  }
+
+  /* Hairline grid used behind the hero and the integrity panel.
+     Fixed-size background image, no DOM cost, no repaint on scroll. */
+  .grid-field {
+    background-image:
+      linear-gradient(to right, var(--color-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--color-line) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+
+  .accent-glow {
+    background: radial-gradient(
+      42rem 26rem at 68% 8%,
+      oklch(0.875 0.196 123 / 0.09),
+      transparent 68%
+    );
+  }
+}
+
+@layer utilities {
+  .text-balance-tight {
+    text-wrap: balance;
+  }
+
+  /* Tabular figures keep count-ups and prices from jittering mid-animation. */
+  .numeric {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  /*
+    The how-it-works connector is scroll-linked through an inline transform
+    written by JavaScript. It is overridden here rather than by branching on
+    `useReducedMotion()` in the component: a branch on a browser-only value
+    would change the server-rendered style attribute and break hydration.
+  */
+  .flow-rail {
+    transform: scaleY(1) !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
